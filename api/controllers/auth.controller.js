@@ -33,7 +33,9 @@ export const signin = async (req, res, next) => {
         res.cookie('access_token', token, {
             httpOnly: true,
             expires: new Date(Date.now() + 3600000), //expires in 1 hours, optional.
-            maxAge: 3600000 // equivalient to expires, but in milliseconds, preferred.
+            maxAge: 3600000, // equivalient to expires, but in milliseconds, preferred.
+            // sameSite: 'none',
+            secure: true,
         }).status(200).json(restInfo);
 
     } catch (error) {
