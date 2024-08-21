@@ -22,10 +22,10 @@ export const signin = async (req, res, next) => {
         // --check validation
         const validUser = await User.findOne({ email });
         //--in not a valid user return invalid message--
-        if (!validUser) return next(errorHandler("User not found", 404));
+        if (!validUser) return next(errorHandler(404, "User not found"));
         //--check password
         const isValidPassword = bcryptjs.compareSync(password, validUser.password);
-        if (!isValidPassword) return next(errorHandler("Invalid Credentials", 401));
+        if (!isValidPassword) return next(errorHandler(403, "Invalid Credentials"));
         //--prevent password & only send rest of the user info
         const { password: hashedPassword, ...restInfo } = validUser._doc;
         //--generate token
