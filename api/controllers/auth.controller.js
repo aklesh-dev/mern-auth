@@ -41,4 +41,36 @@ export const signin = async (req, res, next) => {
     } catch (error) {
         next(error);
     }
-}; 
+};
+
+export const google = async (req, res, next) => {
+    try {
+        const user = await User.findOne({ email: req.body.email });
+        if (user) {
+            const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET);
+            const { password: hashedPassword, ...rest } = user._doc;
+            const expiryDate = new Date(Date.now() + 3600000);
+            res.cookie('access_token', token, { httpOnly: true, expires: expiryDate }).status(200).json(rest);
+        } else {
+            // -- random password with 8 + 8 = 16 digit password & 36 is (a-z + 0-9)
+            const generatedPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
+            // --encrypt the password
+            const encryptedPassword = bcryptjs.hashSync(generatedPassword, 10);
+            const newUser = new User({
+                // --username with random num, to make username unique to avoid conflict
+                username: req.body.name.split(" ").join("").toLowerCase() + Math.floor(Math.random() * 1000).toString(),
+                email: req.body.email,
+                password: encryptedPassword,
+                profilePicture: req.body.photo
+            });
+            await newUser.save(); //--save to db
+            const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET);
+            const { password: hashedPassword, ...rest } = newUser._doc;
+            const expiryDate = new Date(Date.now()+3600000);
+            res.cookie("access_token", token, { httpOnly: true, expires: expiryDate}).status(200).json(rest);
+        }
+
+    } catch (error) {
+        next(error);
+    }
+};
