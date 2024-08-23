@@ -66,11 +66,15 @@ export const google = async (req, res, next) => {
             await newUser.save(); //--save to db
             const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET);
             const { password: hashedPassword, ...rest } = newUser._doc;
-            const expiryDate = new Date(Date.now()+3600000);
-            res.cookie("access_token", token, { httpOnly: true, expires: expiryDate}).status(200).json(rest);
+            const expiryDate = new Date(Date.now() + 3600000);
+            res.cookie("access_token", token, { httpOnly: true, expires: expiryDate }).status(200).json(rest);
         }
 
     } catch (error) {
         next(error);
     }
+};
+
+export const signout = (req, res) => {
+    res.clearCookie('access_token').status(200).json("Signout Success");
 };
