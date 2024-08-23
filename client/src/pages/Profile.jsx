@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { getDownloadURL, getStorage, ref, uploadBytesResumable } from 'firebase/storage';
 import { app } from '../firebase';
-import { updateUserStart, updateUserSuccess, updateUserFailure } from '../features/user/userSlice';
+import { updateUserStart, updateUserSuccess, updateUserFailure, deleteUserStart, deleteUserFailure, deleteUserSuccess } from '../features/user/userSlice';
 
 const Profile = () => {
   const { currentUser, loading, error } = useSelector((state) => state.user);
@@ -76,13 +76,31 @@ const Profile = () => {
         dispatch(updateUserFailure(data));
         return;
       };
-      dispatch(updateUserSuccess(data)); 
-      setUpdateSucess(true);     
-      
+      dispatch(updateUserSuccess(data));
+      setUpdateSucess(true);
+
     } catch (error) {
       dispatch(updateUserFailure(error));
     };
   };
+
+  const handleDeleteAccount = async () => {
+    try {
+      dispatch(deleteUserStart());
+      const res = await fetch(`/api/user/delete/${currentUser._id}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      if (data.success === false) {
+        dispatch(deleteUserFailure(data));
+        return;
+      }
+      dispatch(deleteUserSuccess(data));
+    } catch (error) {
+      dispatch(deleteUserFailure(error));
+    };
+  };
+
 
 
 
@@ -115,10 +133,10 @@ const Profile = () => {
         <input onChange={handleChange} defaultValue={currentUser.username} type="text" placeholder='Username' id='username' className='p-2 bg-slate-100 rounded-lg' />
         <input onChange={handleChange} defaultValue={currentUser.email} type="email" placeholder='Email' id='email' className='p-2 bg-slate-100 rounded-lg' />
         <input onChange={handleChange} type="password" placeholder='Password' id='password' className='p-2 bg-slate-100 rounded-lg' />
-        <button className="bg-slate-600 p-3 rounded-lg uppercase hover:opacity-90 disabled:opacity-80 text-white">{loading ? "loading...": "update"}</button>
+        <button className="bg-slate-600 p-3 rounded-lg uppercase hover:opacity-90 disabled:opacity-80 text-white">{loading ? "loading..." : "update"}</button>
       </form>
       <div className="flex justify-between mt-5 px-2 md:w-2/4 mx-auto">
-        <span className="text-red-600 opacity-90 hover:opacity-100 cursor-pointer">Delete Account</span>
+        <span onClick={handleDeleteAccount} className="text-red-600 opacity-90 hover:opacity-100 cursor-pointer">Delete Account</span>
         <span className="text-red-600 cursor-pointer">Sign Out</span>
       </div>
       <p className='text-red-600 mt-5 text-center'>{error && "Something went wrong!"}</p>
